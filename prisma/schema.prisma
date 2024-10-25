@@ -17,6 +17,7 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String?
+  role    Role     @default(USER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Otp       Otp[]
@@ -28,4 +29,9 @@ model Otp {
   user      User?    @relation(fields: [userId], references: [id])
   userId    String?
   otp       String?
+}
+
+enum Role {
+  USER
+  ADMIN
 }
