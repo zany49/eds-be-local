@@ -1,8 +1,9 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, Req } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateUserDto, UserEmailDto, UserOtpDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FastifyReply, FastifyRequest } from 'fastify';
+import { JwtAuthGuard } from './jwt-auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -29,23 +30,58 @@ export class UserController {
     }
   }
 
-  @Get()
-  findAll() {
-    return this.userService.findAll();
+  @Post('login')
+ async login(
+  @Body() useremailDto: UserEmailDto,
+  @Res() res: FastifyReply,
+  @Req() req: FastifyRequest,
+  ) {
+    try{
+      let resdata = await this.userService.login(useremailDto);
+      console.log("res---->otp",resdata);
+      if(resdata.otp){
+        return res.status(HttpStatus.OK).send({ 
+          message: 'Otp Sent To Email' ,
+        });
+      }else{
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+          message: 'Otp Not Generated' 
+        });
+      }
+    }catch(err){
+      console.log(err);
+      return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+        message: 'Error' ,
+        data : err
+      });
+    }
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.userService.findOne(+id);
-  }
+  @Post('validate-otp')
+  async otpcheck(
+   @Body() userotpDto: UserOtpDto,
+   @Res() res: FastifyReply,
+   @Req() req: FastifyRequest,
+   ) {
+     try{
+       let resdata = await this.userService.otpcheck(userotpDto);
+       console.log("res---->otp",resdata);
+         return res.status(HttpStatus.OK).send({ 
+           resdata
+         });
+     }catch(err){
+       console.log(err);
+       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+         message: 'Error' ,
+         data : err
+       });
+     }
+   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto);
-  }
+   @Get('profile')
+   @UseGuards(JwtAuthGuard)
+   getProfile() {
+     return 'This is a protected route';
+   }
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.userService.remove(+id);
-  }
 }

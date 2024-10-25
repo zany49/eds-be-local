@@ -9,3 +9,20 @@ export class CreateUserDto {
     @IsNotEmpty()
     email: string;
 }
+
+export class UserEmailDto {
+
+    @IsString()
+    @IsNotEmpty()
+    email: string;
+}
+
+export class UserOtpDto {
+    @IsString()
+    @IsNotEmpty()
+    email: string;
+    
+    @IsString()
+    @IsNotEmpty()
+    otp: string;
+}
