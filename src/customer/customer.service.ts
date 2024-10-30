@@ -73,7 +73,7 @@ export class CustomerService {
       }
 
       // Step 6: Create customer users
-      if (users && customer.id) {
+      if (users && users.length > 0 && customer.id) {
         await Promise.all(
           users.map(async (user) => {
             const userData = {
