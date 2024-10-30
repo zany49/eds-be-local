@@ -17,21 +17,92 @@ model User {
   id        String   @id @default(uuid())
   email     String   @unique
   name      String?
-  role    Role     @default(USER)
+  role      Role     @default(USER)
+  phone     String   @unique
+  password  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Otp       Otp[]
 }
 
 model Otp {
-  id        String   @id @default(uuid())
-  createdAt DateTime @default(now())
-  user      User?    @relation(fields: [userId], references: [id])
-  userId    String?
-  otp       String?
+  id         Int      @id @default(autoincrement())
+  createdAt  DateTime @default(now())
+  user       User?    @relation(fields: [userId], references: [id])
+  userId     String
+  otp        String
+  otpType    OtpType  @default(EMAIL)
+  otpAttempt Int      @default(0)
+}
+
+model Customer {
+  id                   String           @id @default(uuid())
+  companyName          String
+  contactName          String?
+  mobileNumber         String           @unique
+  companyEmail         String           @unique
+  vatId                String           @unique
+  commercialRegId      String           @unique
+  mailingAddressId     String?          @unique
+  mailingAddress       CustomerAddress? @relation("MailingAddress", fields: [mailingAddressId], references: [id])
+  pickupMatchesMailing Boolean          @default(false)
+  pickupAddressId      String?          @unique
+  pickupAddress        CustomerAddress? @relation("PickupAddress", fields: [pickupAddressId], references: [id])
+  separateInvoices     Boolean          @default(false)
+  status               ProfileStatus    @default(ACTIVE)
+  contractExpiryDate   DateTime
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  // Relations
+  customerAddresses CustomerAddress[]     @relation("CustomerAddresses")
+  customerUsers     CustomerUserDetails[] @relation("CustomerUsers")
+}
+
+model CustomerAddress {
+  id                    String    @id @default(uuid())
+  customer              Customer? @relation("CustomerAddresses", fields: [customerId], references: [id])
+  customerId            String?
+  addressType           String
+  country               String
+  state                 String
+  city                  String
+  streetAddress         String
+  additionalAddressInfo String?
+
+  customersMailingAddress Customer? @relation("MailingAddress")
+  customersPickupAddress  Customer? @relation("PickupAddress")
+}
+
+model CustomerUserDetails {
+  id                    String   @id @default(uuid())
+  userName              String
+  department            String
+  mobileNumber          String   @unique
+  email                 String   @unique
+  pickupMatchesParent   Boolean  @default(false)
+  customer              Customer @relation("CustomerUsers", fields: [customerId], references: [id])
+  customerId            String
+  country               String?
+  state                 String?
+  city                  String?
+  streetAddress         String?
+  additionalAddressInfo String?
 }
 
 enum Role {
   USER
   ADMIN
+  EMPLOYEE
+  CUSTOMER
+}
+
+enum OtpType {
+  MOBILE
+  EMAIL
+}
+
+enum ProfileStatus{
+  ACTIVE
+  INACTIVE
 }

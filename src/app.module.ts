@@ -7,6 +7,8 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { PugAdapter } from '@nestjs-modules/mailer/dist/adapters/pug.adapter';
 import { EmailsModule } from './emails/emails.module';
+import { PasswordServiceService } from './password-service/password-service.service';
+import { CustomerModule } from './customer/customer.module';
 
 
 @Module({
@@ -37,9 +39,9 @@ import { EmailsModule } from './emails/emails.module';
     }),
     PrismaModule, 
     UserModule, 
-    EmailsModule
+    EmailsModule, CustomerModule
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, PasswordServiceService],
 })
 export class AppModule {}

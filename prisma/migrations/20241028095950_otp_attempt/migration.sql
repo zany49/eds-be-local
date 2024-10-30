@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE `otp` ADD COLUMN `otpAttempt` INTEGER NOT NULL DEFAULT 0;

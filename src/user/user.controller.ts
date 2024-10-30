@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, Res, HttpStatus, Req, UseGuards } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateUserDto, UserEmailDto, UserOtpDto } from './dto/create-user.dto';
+import { ChangePassDto, CreateUserDto, ForgetPassDto, UserEmailDto, UserOtpDto, UserPassDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { JwtAuthGuard } from './jwt-auth.guard';
@@ -30,7 +30,7 @@ export class UserController {
     }
   }
 
-  @Post('login')
+  @Post('loginwithemail')
  async login(
   @Body() useremailDto: UserEmailDto,
   @Res() res: FastifyReply,
@@ -57,26 +57,105 @@ export class UserController {
     }
   }
 
-  @Post('validate-otp')
-  async otpcheck(
-   @Body() userotpDto: UserOtpDto,
-   @Res() res: FastifyReply,
-   @Req() req: FastifyRequest,
-   ) {
-     try{
-       let resdata = await this.userService.otpcheck(userotpDto);
-       console.log("res---->otp",resdata);
-         return res.status(HttpStatus.OK).send({ 
-           resdata
+
+
+   @Post('loginwithepassword')
+   async loginPassword(
+    @Body() userpassDto: UserPassDto,
+    @Res() res: FastifyReply,
+    @Req() req: FastifyRequest,
+    ) {
+      try{
+        let resdata = await this.userService.loginPassword(userpassDto,userpassDto.password);
+        console.log("res---->otp",resdata);
+        if(resdata.access_token){
+          return res.status(HttpStatus.OK).send({ 
+            message: resdata.message ,
+            data:resdata.access_token
+          });
+        }else{
+          return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+            message: 'Access Token Not Generated' 
+          });
+        }
+      }catch(err){
+        console.log(err);
+        return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+          message: 'Error' ,
+          data : err
+        });
+      }
+    }
+
+    @Post('forgot-password')
+    async forgetPass(
+     @Body() forgetpassDto: ForgetPassDto,
+     @Res() res: FastifyReply,
+     @Req() req: FastifyRequest,
+     ) {
+       try{
+         let resdata = await this.userService.forgetPass(forgetpassDto);
+         console.log("res---->otp",resdata);
+         if(resdata.otp){
+           return res.status(HttpStatus.OK).send({ 
+             message: 'Otp Sent To Email' ,
+           });
+         }else{
+           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+             message: 'Otp Not Generated' 
+           });
+         }
+       }catch(err){
+         console.log(err);
+         return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+           message: 'Error' ,
+           data : err
          });
-     }catch(err){
-       console.log(err);
-       return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
-         message: 'Error' ,
-         data : err
-       });
+       }
      }
-   }
+
+     @Post('validate-otp')
+     async otpcheck(
+      @Body() userotpDto: UserOtpDto,
+      @Res() res: FastifyReply,
+      @Req() req: FastifyRequest,
+      ) {
+        try{
+          let resdata = await this.userService.otpcheck(userotpDto,userotpDto.otpType);
+          console.log("res---->otp",resdata);
+            return res.status(HttpStatus.OK).send({ 
+              resdata
+            });
+        }catch(err){
+          console.log(err);
+          return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+            message: 'Error' ,
+            data : err
+          });
+        }
+      }
+
+      @Post('change-password')
+      @UseGuards(JwtAuthGuard)
+      async chnagePassword(
+       @Body() userotpDto: ChangePassDto,
+       @Res() res: FastifyReply,
+       @Req() req: FastifyRequest,
+       ) {
+         try{
+           let resdata = await this.userService.chnagePassword(userotpDto);
+           console.log("res---->otp",resdata);
+             return res.status(HttpStatus.OK).send({ 
+               resdata
+             });
+         }catch(err){
+           console.log(err);
+           return res.status(HttpStatus.INTERNAL_SERVER_ERROR).send({ 
+             message: 'Error' ,
+             data : err
+           });
+         }
+       }
 
    @Get('profile')
    @UseGuards(JwtAuthGuard)
